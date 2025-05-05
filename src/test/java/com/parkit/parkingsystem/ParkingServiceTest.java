@@ -7,6 +7,8 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ParkingServiceTest {
+class ParkingServiceTest {
+
+    private static final Logger logger = LogManager.getLogger("ParkingServiceTest");
 
     private static ParkingService parkingService;
 
@@ -32,7 +36,7 @@ public class ParkingServiceTest {
     private static TicketDAO ticketDAO;
 
     @BeforeEach
-    private void setUpPerTest() {
+    void setUpPerTest() {
         try {
             lenient().when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
 
@@ -48,13 +52,13 @@ public class ParkingServiceTest {
 
             parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e);
             throw new RuntimeException("Failed to set up test mock objects");
         }
     }
 
     @Test
-    public void processExitingVehicleTest() {
+    void processExitingVehicleTest() {
         when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(0); //Nb of times he uses the parking
 
         parkingService.processExitingVehicle();
@@ -67,7 +71,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void processExitingVehicleTestRegularUser() {
+    void processExitingVehicleTestRegularUser() {
         when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(2); //Nb of times he uses the parking
 
         parkingService.processExitingVehicle();
@@ -80,7 +84,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testProcessIncomingVehicle() {
+    void testProcessIncomingVehicle() {
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);    //The Next Parking Slot
         when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(0);         //Nb of times he uses the parking
         when(inputReaderUtil.readSelection()).thenReturn(1);                         //1 for Car 2 for Bike
@@ -94,7 +98,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testProcessIncomingVehicleRegularUser() {
+    void testProcessIncomingVehicleRegularUser() {
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);    //The Next Parking Slot
         when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(2);         //Nb of times he uses the parking
         when(inputReaderUtil.readSelection()).thenReturn(1);                         //1 for Car 2 for Bike
@@ -108,7 +112,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testProcessIncomingVehicleNoSlot() {
+    void testProcessIncomingVehicleNoSlot() {
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(0);    //The Next Parking Slot
         when(inputReaderUtil.readSelection()).thenReturn(1);                         //1 for Car 2 for Bike
 
@@ -120,7 +124,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void processExitingVehicleTestUnableUpdate() {
+    void processExitingVehicleTestUnableUpdate() {
         when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(0); //Nb of times he uses the parking
 
         parkingService.processExitingVehicle();
@@ -129,7 +133,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testGetNextParkingNumberIfAvailable() {
+    void testGetNextParkingNumberIfAvailable() {
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
 
@@ -143,7 +147,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testGetNextParkingNumberIfAvailableParkingNumberNotFound() {
+    void testGetNextParkingNumberIfAvailableParkingNumberNotFound() {
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(0);
 
@@ -153,7 +157,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() {
+    void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() {
         when(inputReaderUtil.readSelection()).thenReturn(3);
 
         ParkingSpot parking = parkingService.getNextParkingNumberIfAvailable();
@@ -162,7 +166,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testGetVehicule() {
+    void testGetVehicule() {
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
 
@@ -172,7 +176,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testGetBike() {
+    void testGetBike() {
         when(inputReaderUtil.readSelection()).thenReturn(2);
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.BIKE)).thenReturn(1);
 
@@ -182,7 +186,7 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void testProcessExitingVehicleWithNullTicket() {
+    void testProcessExitingVehicleWithNullTicket() {
         when(ticketDAO.getTicket("ABCDEF")).thenReturn(null);
 
         parkingService.processExitingVehicle();

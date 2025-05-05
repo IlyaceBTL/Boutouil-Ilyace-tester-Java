@@ -15,11 +15,11 @@ public class ParkingService {
 
     private static final Logger logger = LogManager.getLogger("ParkingService");
 
-    private static FareCalculatorService fareCalculatorService = new FareCalculatorService();
+    private static final FareCalculatorService fareCalculatorService = new FareCalculatorService();
 
-    private InputReaderUtil inputReaderUtil;
-    private ParkingSpotDAO parkingSpotDAO;
-    private TicketDAO ticketDAO;
+    private final InputReaderUtil inputReaderUtil;
+    private final ParkingSpotDAO parkingSpotDAO;
+    private final TicketDAO ticketDAO;
 
     public ParkingService(InputReaderUtil inputReaderUtil, ParkingSpotDAO parkingSpotDAO, TicketDAO ticketDAO) {
         this.inputReaderUtil = inputReaderUtil;
@@ -33,28 +33,22 @@ public class ParkingService {
             if (parkingSpot != null && parkingSpot.getId() > 0) {
                 String vehicleRegNumber = getVehichleRegNumber();
                 parkingSpot.setAvailable(false);
-                parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
+                parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark its availability as false
 
                 Date inTime = new Date();
                 Ticket ticket = new Ticket();
-                //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
-                //ticket.setId(ticketID);
                 ticket.setParkingSpot(parkingSpot);
                 ticket.setVehicleRegNumber(vehicleRegNumber);
                 ticket.setPrice(0);
                 ticket.setInTime(inTime);
                 ticket.setOutTime(null);
                 ticketDAO.saveTicket(ticket);
-                if (ticketDAO.getNbTicket(ticket.getVehicleRegNumber()) > 0) {
-                    System.out.println("Generated Ticket and saved in DB");
+                System.out.println("Generated Ticket and saved in DB");
+                if (ticketDAO.getNbTicket(ticket.getVehicleRegNumber()) > 1) {
                     System.out.println("Welcome back! As a regular user of our parking, you will receive a 5% discount.");
-                    System.out.println("Please park your vehicle in spot number:" + parkingSpot.getId());
-                    System.out.println("Recorded in-time for vehicle number:" + vehicleRegNumber + " is:" + inTime);
-                } else {
-                    System.out.println("Generated Ticket and saved in DB");
-                    System.out.println("Please park your vehicle in spot number:" + parkingSpot.getId());
-                    System.out.println("Recorded in-time for vehicle number:" + vehicleRegNumber + " is:" + inTime);
                 }
+                System.out.println("Please park your vehicle in spot number:" + parkingSpot.getId());
+                System.out.println("Recorded in-time for vehicle number:" + vehicleRegNumber + " is:" + inTime);
             }
 
         } catch (Exception e) {
@@ -110,10 +104,10 @@ public class ParkingService {
             String vehicleRegNumber = getVehichleRegNumber();
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
             Date outTime = new Date();
-            ticket.setOutTime(outTime);
-            if(ticketDAO.getNbTicket(vehicleRegNumber)>0){
-                fareCalculatorService.calculateFare(ticket,true);
-            }else {
+            ticket.setOutTime(new Date());
+            if (ticketDAO.getNbTicket(vehicleRegNumber) > 1) {
+                fareCalculatorService.calculateFare(ticket, true);
+            } else {
                 fareCalculatorService.calculateFare(ticket);
             }
             if (ticketDAO.updateTicket(ticket)) {
