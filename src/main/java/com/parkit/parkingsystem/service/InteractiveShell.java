@@ -1,5 +1,6 @@
 package com.parkit.parkingsystem.service;
 
+import com.parkit.parkingsystem.config.DataBaseConfig;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.util.InputReaderUtil;
@@ -10,20 +11,24 @@ public class InteractiveShell {
 
     private static final Logger logger = LogManager.getLogger("InteractiveShell");
 
-    public static void loadInterface(){
+    public static void loadInterface() {
         logger.info("App initialized!!!");
-        System.out.println("Welcome to Parking System!");
+        logger.info("Welcome to Parking System!");
 
         boolean continueApp = true;
+
+        DataBaseConfig dataBaseConfig = new DataBaseConfig();
+
         InputReaderUtil inputReaderUtil = new InputReaderUtil();
-        ParkingSpotDAO parkingSpotDAO = new ParkingSpotDAO();
-        TicketDAO ticketDAO = new TicketDAO();
+        ParkingSpotDAO parkingSpotDAO = new ParkingSpotDAO(dataBaseConfig);
+        TicketDAO ticketDAO = new TicketDAO(dataBaseConfig);
+
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
 
-        while(continueApp){
+        while (continueApp) {
             loadMenu();
             int option = inputReaderUtil.readSelection();
-            switch(option){
+            switch (option) {
                 case 1: {
                     parkingService.processIncomingVehicle();
                     break;
@@ -33,20 +38,20 @@ public class InteractiveShell {
                     break;
                 }
                 case 3: {
-                    System.out.println("Exiting from the system!");
+                    logger.info("Exiting from the system!");
                     continueApp = false;
                     break;
                 }
-                default: System.out.println("Unsupported option. Please enter a number corresponding to the provided menu");
+                default:
+                    logger.info("Unsupported option. Please enter a number corresponding to the provided menu");
             }
         }
     }
 
-    private static void loadMenu(){
-        System.out.println("Please select an option. Simply enter the number to choose an action");
-        System.out.println("1 New Vehicle Entering - Allocate Parking Space");
-        System.out.println("2 Vehicle Exiting - Generate Ticket Price");
-        System.out.println("3 Shutdown System");
+    private static void loadMenu() {
+        logger.info("Please select an option. Simply enter the number to choose an action");
+        logger.info("1 New Vehicle Entering - Allocate Parking Space");
+        logger.info("2 Vehicle Exiting - Generate Ticket Price");
+        logger.info("3 Shutdown System");
     }
-
 }

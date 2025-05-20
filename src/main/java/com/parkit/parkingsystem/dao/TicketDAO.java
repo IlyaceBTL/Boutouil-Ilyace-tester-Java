@@ -16,74 +16,91 @@ import java.sql.Timestamp;
 public class TicketDAO {
 
     private static final Logger logger = LogManager.getLogger("TicketDAO");
+    private final DataBaseConfig dataBaseConfig;
 
-    public DataBaseConfig dataBaseConfig = new DataBaseConfig();
+    public TicketDAO(DataBaseConfig dataBaseConfig) {
+        this.dataBaseConfig = dataBaseConfig;
+    }
 
-    public boolean saveTicket(Ticket ticket){
-        Connection con = null;
-        try {
-            con = dataBaseConfig.getConnection();
-            PreparedStatement ps = con.prepareStatement(DBConstants.SAVE_TICKET);
-            //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
-            //ps.setInt(1,ticket.getId());
-            ps.setInt(1,ticket.getParkingSpot().getId());
+    public boolean saveTicket(Ticket ticket) {
+        try (Connection con = dataBaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(DBConstants.SAVE_TICKET)) {
+
+            ps.setInt(1, ticket.getParkingSpot().getId());
             ps.setString(2, ticket.getVehicleRegNumber());
             ps.setDouble(3, ticket.getPrice());
             ps.setTimestamp(4, new Timestamp(ticket.getInTime().getTime()));
-            ps.setTimestamp(5, (ticket.getOutTime() == null)?null: (new Timestamp(ticket.getOutTime().getTime())) );
-            return ps.execute();
-        }catch (Exception ex){
-            logger.error("Error fetching next available slot",ex);
-        }finally {
-            dataBaseConfig.closeConnection(con);
+            ps.setTimestamp(5, (ticket.getOutTime() == null) ? null : new Timestamp(ticket.getOutTime().getTime()));
+
+            return ps.executeUpdate() == 1;
+
+        } catch (Exception ex) {
+            logger.error("Error saving ticket", ex);
             return false;
         }
     }
 
     public Ticket getTicket(String vehicleRegNumber) {
-        Connection con = null;
         Ticket ticket = null;
-        try {
-            con = dataBaseConfig.getConnection();
-            PreparedStatement ps = con.prepareStatement(DBConstants.GET_TICKET);
-            //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
-            ps.setString(1,vehicleRegNumber);
-            ResultSet rs = ps.executeQuery();
-            if(rs.next()){
-                ticket = new Ticket();
-                ParkingSpot parkingSpot = new ParkingSpot(rs.getInt(1), ParkingType.valueOf(rs.getString(6)),false);
-                ticket.setParkingSpot(parkingSpot);
-                ticket.setId(rs.getInt(2));
-                ticket.setVehicleRegNumber(vehicleRegNumber);
-                ticket.setPrice(rs.getDouble(3));
-                ticket.setInTime(rs.getTimestamp(4));
-                ticket.setOutTime(rs.getTimestamp(5));
+
+        try (Connection con = dataBaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(DBConstants.GET_TICKET)) {
+
+            ps.setString(1, vehicleRegNumber);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    ticket = new Ticket();
+                    ParkingSpot parkingSpot = new ParkingSpot(rs.getInt(1), ParkingType.valueOf(rs.getString(6)), false);
+                    ticket.setParkingSpot(parkingSpot);
+                    ticket.setId(rs.getInt(2));
+                    ticket.setVehicleRegNumber(vehicleRegNumber);
+                    ticket.setPrice(rs.getDouble(3));
+                    ticket.setInTime(rs.getTimestamp(4));
+                    ticket.setOutTime(rs.getTimestamp(5));
+                }
             }
-            dataBaseConfig.closeResultSet(rs);
-            dataBaseConfig.closePreparedStatement(ps);
-        }catch (Exception ex){
-            logger.error("Error fetching next available slot",ex);
-        }finally {
-            dataBaseConfig.closeConnection(con);
-            return ticket;
+
+        } catch (Exception ex) {
+            logger.error("Error fetching ticket", ex);
         }
+
+        return ticket;
     }
 
     public boolean updateTicket(Ticket ticket) {
-        Connection con = null;
-        try {
-            con = dataBaseConfig.getConnection();
-            PreparedStatement ps = con.prepareStatement(DBConstants.UPDATE_TICKET);
+        try (Connection con = dataBaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(DBConstants.UPDATE_TICKET)) {
+
             ps.setDouble(1, ticket.getPrice());
             ps.setTimestamp(2, new Timestamp(ticket.getOutTime().getTime()));
-            ps.setInt(3,ticket.getId());
-            ps.execute();
-            return true;
-        }catch (Exception ex){
-            logger.error("Error saving ticket info",ex);
-        }finally {
-            dataBaseConfig.closeConnection(con);
+            ps.setInt(3, ticket.getId());
+
+            return ps.executeUpdate() == 1;
+
+        } catch (Exception ex) {
+            logger.error("Error updating ticket", ex);
+            return false;
         }
-        return false;
+    }
+
+    public int getNbTicket(String vehicleRegNumber) {
+        int nbTicket = 0;
+
+        try (Connection con = dataBaseConfig.getConnection();
+             PreparedStatement ps = con.prepareStatement(DBConstants.GET_NB_TICKET)) {
+
+            ps.setString(1, vehicleRegNumber);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    nbTicket = rs.getInt(1);
+                }
+            }
+
+        } catch (Exception ex) {
+            logger.error("Error fetching ticket count", ex);
+        }
+
+        return nbTicket;
     }
 }
