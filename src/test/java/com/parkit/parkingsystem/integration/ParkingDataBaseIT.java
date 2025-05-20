@@ -10,7 +10,6 @@ import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,22 +37,17 @@ class ParkingDataBaseIT {
 
     @BeforeAll
     static void setUp() {
-        parkingSpotDAO = new ParkingSpotDAO();
-        parkingSpotDAO.dataBaseConfig = dataBaseTestConfig;
-        ticketDAO = new TicketDAO();
-        ticketDAO.dataBaseConfig = dataBaseTestConfig;
+        parkingSpotDAO = new ParkingSpotDAO(dataBaseTestConfig);
+        ticketDAO = new TicketDAO(dataBaseTestConfig);
         dataBasePrepareService = new DataBasePrepareService();
+
     }
 
     @BeforeEach
-    void setUpPerTest() throws Exception {
+    void setUpPerTest() {
         lenient().when(inputReaderUtil.readSelection()).thenReturn(1);
         lenient().when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
         dataBasePrepareService.clearDataBaseEntries();
-    }
-
-    @AfterAll
-    static void tearDown() {
     }
 
     @Test
@@ -126,7 +120,7 @@ class ParkingDataBaseIT {
 
     @Test
     void testGetNbTicketForRecurringUser() {
-        String vehicleRegNumber = "ZZ123ZZ";
+        String vehicleRegNumber = "123";
 
         Ticket ticket1 = new Ticket();
         ticket1.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));

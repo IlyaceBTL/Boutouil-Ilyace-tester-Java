@@ -19,7 +19,7 @@ public class FareCalculatorService {
             return;
         }
         double reduction;
-        if (discount) {
+        if (Boolean.TRUE.equals(discount)) {
             reduction = 0.95;
         } else {
             reduction = 1;
@@ -34,7 +34,7 @@ public class FareCalculatorService {
                 break;
             }
             default:
-                throw new IllegalArgumentException("Unkown Parking Type");
+                throw new IllegalArgumentException("Unknown Parking Type");
         }
     }
 
@@ -62,7 +62,7 @@ public class FareCalculatorService {
                 break;
             }
             default:
-                throw new IllegalArgumentException("Unkown Parking Type");
+                throw new IllegalArgumentException("Unknown Parking Type");
         }
     }
 }
