@@ -19,10 +19,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Date;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.lenient;
 
+/**
+ * Integration tests for parking system with database interactions.
+ * This class tests core functionalities such as parking a vehicle,
+ * exiting the parking lot, and recurring user discount application.
+ */
 @ExtendWith(MockitoExtension.class)
 class ParkingDataBaseIT {
 
@@ -34,15 +38,19 @@ class ParkingDataBaseIT {
     @Mock
     private static InputReaderUtil inputReaderUtil;
 
-
+    /**
+     * Setup database DAOs and prepare service before all tests.
+     */
     @BeforeAll
     static void setUp() {
         parkingSpotDAO = new ParkingSpotDAO(dataBaseTestConfig);
         ticketDAO = new TicketDAO(dataBaseTestConfig);
         dataBasePrepareService = new DataBasePrepareService();
-
     }
 
+    /**
+     * Setup mocks and clean database entries before each test.
+     */
     @BeforeEach
     void setUpPerTest() {
         lenient().when(inputReaderUtil.readSelection()).thenReturn(1);
@@ -50,6 +58,10 @@ class ParkingDataBaseIT {
         dataBasePrepareService.clearDataBaseEntries();
     }
 
+    /**
+     * Test that a car can be parked successfully and a ticket is generated
+     * with correct vehicle registration and parking spot availability updated.
+     */
     @Test
     void testParkingACar() {
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
@@ -63,9 +75,13 @@ class ParkingDataBaseIT {
         ParkingSpot parking = ticket.getParkingSpot();
         assertNotNull(parking);
         assertFalse(parking.isAvailable());
-
     }
 
+    /**
+     * Test that when a vehicle exits the parking lot,
+     * the ticket is updated without time and price,
+     * and the parking spot becomes available again.
+     */
     @Test
     void testParkingLotExit() {
         Ticket ticket = new Ticket();
@@ -76,7 +92,6 @@ class ParkingDataBaseIT {
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
         ticket.setParkingSpot(parkingSpot);
         ticketDAO.saveTicket(ticket);
-
 
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         parkingService.processExitingVehicle();
@@ -93,9 +108,12 @@ class ParkingDataBaseIT {
         assertFalse(parking.isAvailable());
     }
 
+    /**
+     * Test the exit process for a recurring user,
+     * verifying that the discount is correctly applied on the parking fare.
+     */
     @Test
     void testParkingLotExitRecurringUser() {
-
         Ticket ticket = new Ticket();
         Date inTime = new Date();
         inTime.setTime(System.currentTimeMillis() - (60 * 60 * 1000));
@@ -104,7 +122,6 @@ class ParkingDataBaseIT {
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
         ticket.setParkingSpot(parkingSpot);
         ticketDAO.saveTicket(ticket);
-
 
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         parkingService.processIncomingVehicle();
@@ -118,6 +135,10 @@ class ParkingDataBaseIT {
         assertEquals(1, parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR));
     }
 
+    /**
+     * Test that the DAO correctly counts the number of tickets
+     * for a recurring user given their vehicle registration number.
+     */
     @Test
     void testGetNbTicketForRecurringUser() {
         String vehicleRegNumber = "123";
@@ -140,6 +161,4 @@ class ParkingDataBaseIT {
 
         assertEquals(2, nbTickets);
     }
-
-
 }
