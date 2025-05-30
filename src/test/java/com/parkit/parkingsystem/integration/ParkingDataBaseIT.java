@@ -123,7 +123,6 @@ class ParkingDataBaseIT {
         ticket.setParkingSpot(parkingSpot);
         ticketDAO.saveTicket(ticket);
 
-
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         // We make two enter to simulate the second passage for the reduction
         parkingService.processIncomingVehicle();
