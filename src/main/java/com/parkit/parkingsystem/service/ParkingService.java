@@ -65,7 +65,7 @@ public class ParkingService {
                 logger.info("Generated Ticket and saved in DB");
 
                 // Check for recurring user
-                if (ticketDAO.getNbTicket(vehicleRegNumber) > 1) {
+                if (ticketDAO.getNbTicket(vehicleRegNumber) >= 2) {
                     logger.info("Welcome back! As a regular user of our parking, you will receive a {} discount.", "5%");
                 }
 
@@ -150,8 +150,7 @@ public class ParkingService {
             ticket.setOutTime(outTime);
 
             // Check if user is a regular to apply discount
-            if (ticketDAO.getNbTicket(vehicleRegNumber) > 2) {
-
+            if (ticketDAO.getNbTicket(vehicleRegNumber) >= 2) {
                 fareCalculatorService.calculateFare(ticket, true);
             } else {
                 fareCalculatorService.calculateFare(ticket);
