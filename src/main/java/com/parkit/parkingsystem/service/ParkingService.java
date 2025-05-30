@@ -151,6 +151,7 @@ public class ParkingService {
 
             // Check if user is a regular to apply discount
             if (ticketDAO.getNbTicket(vehicleRegNumber) > 2) {
+
                 fareCalculatorService.calculateFare(ticket, true);
             } else {
                 fareCalculatorService.calculateFare(ticket);
